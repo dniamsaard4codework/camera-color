@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MitrPhol Color Analyzer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-weight: 300;
+            font-size: 3em;
+            margin-bottom: 30px;
+        }
+        #video-container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        #video-container img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+        #color-data {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        .color-box {
+            width: calc(14.28% - 10px);
+            aspect-ratio: 1;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+            font-size: 0.9em;
+            transition: transform 0.3s ease;
+        }
+        .color-box:hover {
+            transform: scale(1.05);
+        }
+        #export-container {
+            text-align: center;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: background-color 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MitrPhol Color Analyzer</h1>
+
+        <div id="video-container">
+            <img src="{{ url_for('video_feed') }}" alt="Video feed">
+        </div>
+
+        <div id="color-data">
+        </div>
+
+        <div id="export-container">
+            <a href="{{ url_for('export_csv') }}" class="btn">Export CSV</a>
+        </div>
+    </div>
+
+    <script>
+        function updateColorData() {
+            fetch('/color_data')
+                .then(response => response.json())
+                .then(data => {
+                    const colorDataContainer = document.getElementById('color-data');
+                    colorDataContainer.innerHTML = '';
+                    data.forEach(color => {
+                        const colorBox = document.createElement('div');
+                        colorBox.className = 'color-box';
+                        colorBox.style.backgroundColor = color.hex;
+                        colorBox.innerHTML = `
+                            <div>Zone ${color.zone}</div>
+                            <div>RGB: ${color.rgb.join(', ')}</div>
+                            <div>HSL: ${color.hsl.join(', ')}</div>
+                            <div>${color.hex}</div>
+                        `;
+                        colorDataContainer.appendChild(colorBox);
+                    });
+                });
+        }
+
+        setInterval(updateColorData, 1000);
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const exportBtn = document.querySelector('#export-container a');
+            exportBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = this.href;
+            });
+        });
+    </script>
+</body>
+</html>
